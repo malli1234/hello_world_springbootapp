@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hello-world-springbootapp.fullname" . }}
+  labels:
+    {{- include "hello-world-springbootapp.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "hello-world-springbootapp.selectorLabels" . | nindent 4 }}
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+      protocol: TCP
