@@ -1,0 +1,160 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: hello-world-springbootapp
+  annotations:
+    openshift.io/display-name: "Hello World Spring Boot App"
+    openshift.io/long-description: >-
+      Spring Boot 3 REST API exposing GET /hello?name=... — packaged as a
+      container image and deployed to OpenShift as a Deployment, Service,
+      and edge-terminated Route.
+    description: "Spring Boot REST API (Gradle build) deployed on OpenShift."
+    iconClass: "icon-spring"
+    tags: "spring-boot,java,rest,gradle"
+labels:
+  template: hello-world-springbootapp
+
+parameters:
+  - name: APP_NAME
+    displayName: Application name
+    description: Used for resource names and the app= label selector.
+    value: hello-world-springbootapp
+    required: true
+  - name: IMAGE
+    displayName: Container image
+    description: >-
+      Fully-qualified container image reference (registry/repo:tag).
+      Replace the placeholder with your real image.
+    value: quay.io/REPLACE_ME/hello-world-springbootapp:latest
+    required: true
+  - name: REPLICAS
+    displayName: Replica count
+    description: Number of pod replicas for the Deployment.
+    value: "1"
+    required: true
+  - name: CONTAINER_PORT
+    displayName: Container port
+    description: Port the Spring Boot app listens on (matches application.properties).
+    value: "8080"
+    required: true
+  - name: HOST
+    displayName: Route host
+    description: >-
+      Optional FQDN for the Route. Leave empty to let OpenShift auto-generate
+      a host based on the cluster's default app domain.
+    value: ""
+  - name: CPU_REQUEST
+    displayName: CPU request
+    value: "100m"
+    required: true
+  - name: CPU_LIMIT
+    displayName: CPU limit
+    value: "500m"
+    required: true
+  - name: MEMORY_REQUEST
+    displayName: Memory request
+    value: "256Mi"
+    required: true
+  - name: MEMORY_LIMIT
+    displayName: Memory limit
+    value: "512Mi"
+    required: true
+
+objects:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: ${APP_NAME}
+      labels:
+        app: ${APP_NAME}
+        app.kubernetes.io/name: ${APP_NAME}
+        app.kubernetes.io/component: api
+        app.kubernetes.io/part-of: ${APP_NAME}
+    spec:
+      replicas: "${{REPLICAS}}"
+      selector:
+        matchLabels:
+          app: ${APP_NAME}
+      template:
+        metadata:
+          labels:
+            app: ${APP_NAME}
+            app.kubernetes.io/name: ${APP_NAME}
+        spec:
+          containers:
+            - name: ${APP_NAME}
+              image: ${IMAGE}
+              imagePullPolicy: IfNotPresent
+              ports:
+                - name: http
+                  containerPort: "${{CONTAINER_PORT}}"
+                  protocol: TCP
+              env:
+                - name: SERVER_PORT
+                  value: "${CONTAINER_PORT}"
+              readinessProbe:
+                httpGet:
+                  path: /hello?name=ready
+                  port: http
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                timeoutSeconds: 3
+                failureThreshold: 3
+              livenessProbe:
+                httpGet:
+                  path: /hello?name=live
+                  port: http
+                initialDelaySeconds: 30
+                periodSeconds: 20
+                timeoutSeconds: 3
+                failureThreshold: 3
+              resources:
+                requests:
+                  cpu: ${CPU_REQUEST}
+                  memory: ${MEMORY_REQUEST}
+                limits:
+                  cpu: ${CPU_LIMIT}
+                  memory: ${MEMORY_LIMIT}
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+                capabilities:
+                  drop:
+                    - ALL
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${APP_NAME}
+      labels:
+        app: ${APP_NAME}
+        app.kubernetes.io/name: ${APP_NAME}
+    spec:
+      type: ClusterIP
+      selector:
+        app: ${APP_NAME}
+      ports:
+        - name: http
+          port: 8080
+          targetPort: http
+          protocol: TCP
+
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${APP_NAME}
+      labels:
+        app: ${APP_NAME}
+        app.kubernetes.io/name: ${APP_NAME}
+    spec:
+      host: ${HOST}
+      to:
+        kind: Service
+        name: ${APP_NAME}
+        weight: 100
+      port:
+        targetPort: http
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Redirect
+      wildcardPolicy: None
