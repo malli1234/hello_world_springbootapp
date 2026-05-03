@@ -1,0 +1,14 @@
+.git
+.gitignore
+.gradle
+build
+target
+out
+*.iml
+.idea
+.vscode
+.settings
+.project
+.classpath
+README.md
+applicationcloud.yaml
