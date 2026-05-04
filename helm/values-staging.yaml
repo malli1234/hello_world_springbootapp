@@ -1,0 +1,5 @@
+replicas: 2
+mongodb:
+  uri: "mongodb://mongo-staging.svc.cluster.local:27017/myappdb-staging"
+route:
+  host: "hello-staging.apps.ocp.example.com"

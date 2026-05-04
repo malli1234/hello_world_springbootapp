@@ -1,19 +1,26 @@
-{{ include "hello-world-springbootapp.fullname" . }} has been deployed.
+{{ include "app.fullname" . }} has been deployed.
 
 {{- if .Values.route.enabled }}
 
 To access the application via its OpenShift Route, run:
 
-  oc get route {{ include "hello-world-springbootapp.fullname" . }} -o jsonpath='{.spec.host}{"\n"}'
+  oc get route {{ include "app.fullname" . }} -o jsonpath='{.spec.host}{"\n"}'
 
-Then test the endpoint:
+Then test the endpoints:
 
-  curl -k "https://$(oc get route {{ include "hello-world-springbootapp.fullname" . }} -o jsonpath='{.spec.host}')/hello?name=World"
+  HOST=$(oc get route {{ include "app.fullname" . }} -o jsonpath='{.spec.host}')
+  curl -k "https://$HOST/hello?name=World"
+  curl -k "https://$HOST/greetings"
 {{- else }}
 
 Route is disabled. To access the service, port-forward locally:
 
-  oc port-forward svc/{{ include "hello-world-springbootapp.fullname" . }} 8080:8080
+  oc port-forward svc/{{ include "app.fullname" . }} {{ .Values.containerPort }}:{{ .Values.containerPort }}
 
-Then visit http://localhost:8080/hello?name=World
+Then visit:
+  http://localhost:{{ .Values.containerPort }}/hello?name=World
+  http://localhost:{{ .Values.containerPort }}/greetings
 {{- end }}
+
+The /greetings endpoint is backed by MongoDB. The MongoDB URI is supplied via the
+{{- if .Values.mongodb.existingSecret }} existing Secret "{{ .Values.mongodb.existingSecret }}"{{- else }} chart-managed Secret "{{ include "app.fullname" . }}-mongodb"{{- end }} (key: {{ .Values.mongodb.secretKey }}).

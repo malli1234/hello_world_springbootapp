@@ -2,16 +2,20 @@
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
-  name: {{ include "hello-world-springbootapp.fullname" . }}
+  name: {{ include "app.fullname" . }}
   labels:
-    {{- include "hello-world-springbootapp.labels" . | nindent 4 }}
+    {{- include "app.labels" . | nindent 4 }}
+  {{- with .Values.route.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   {{- if .Values.route.host }}
   host: {{ .Values.route.host }}
   {{- end }}
   to:
     kind: Service
-    name: {{ include "hello-world-springbootapp.fullname" . }}
+    name: {{ include "app.fullname" . }}
     weight: 100
   port:
     targetPort: http
