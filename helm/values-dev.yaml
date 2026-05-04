@@ -1,0 +1,12 @@
+replicas: 1
+mongodb:
+  uri: "mongodb://mongo-dev.svc.cluster.local:27017/myappdb-dev"
+route:
+  host: "hello-dev.apps.ocp.example.com"
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 250m
+    memory: 384Mi

@@ -1,0 +1,13 @@
+replicas: 3
+mongodb:
+  existingSecret: "prod-mongodb-credentials"
+  secretKey: "mongodb-uri"
+route:
+  host: "hello.apps.ocp.example.com"
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: "1"
+    memory: 1Gi

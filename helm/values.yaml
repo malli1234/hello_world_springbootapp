@@ -1,0 +1,93 @@
+# -- Application name override
+appName: ""
+# -- Full name override (takes precedence over appName)
+fullnameOverride: ""
+
+image:
+  repository: quay.io/REPLACE_ME/hello-world-springbootapp
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# -- Image pull secrets for private registries
+imagePullSecrets: []
+
+replicas: 1
+containerPort: 8080
+
+# -- MongoDB configuration
+mongodb:
+  uri: "mongodb://mongo-dummy.example.com:27017/myappdb"
+  existingSecret: ""
+  secretKey: "mongodb-uri"
+
+# -- Service account configuration
+serviceAccount:
+  create: false
+  name: ""
+  annotations: {}
+
+# -- Pod annotations
+podAnnotations: {}
+
+# -- Common labels added to all resources
+commonLabels: {}
+
+# -- Readiness and liveness probes
+probes:
+  readiness:
+    enabled: true
+    path: /hello?name=ready
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  liveness:
+    enabled: true
+    path: /hello?name=live
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 3
+    failureThreshold: 3
+
+# -- Additional environment variables
+extraEnv: []
+# - name: JAVA_OPTS
+#   value: "-Xmx512m"
+
+# -- OpenShift Route
+route:
+  enabled: true
+  host: ""
+  annotations: {}
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect
+
+# -- Container security context
+securityContext:
+  allowPrivilegeEscalation: false
+  runAsNonRoot: true
+  capabilities:
+    drop:
+      - ALL
+
+# -- Pod security context
+podSecurityContext: {}
+
+# -- Resource requests and limits
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+# -- Node selector
+nodeSelector: {}
+
+# -- Tolerations
+tolerations: []
+
+# -- Affinity rules
+affinity: {}
